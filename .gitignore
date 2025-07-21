@@ -1,0 +1,6 @@
+# Dependencies - these can be reinstalled using 'npm install'
+/node_modules
+
+# Google OAuth Credentials - NEVER commit these files
+credentials.json
+token.json

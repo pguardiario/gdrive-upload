@@ -1,0 +1,17 @@
+{
+  "name": "google-upload",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cli-progress": "^3.12.0",
+    "googleapis": "^153.0.0",
+    "open": "^10.2.0"
+  }
+}
