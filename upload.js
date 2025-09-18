@@ -8,9 +8,9 @@ const cliProgress = require('cli-progress');
 const REDIRECT_PORT = 5135;
 const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/oauth2callback`;
 
-const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
+const CREDENTIALS_PATH = path.join(__dirname, 'credentials.json');
 const SCOPES = ['https://www.googleapis.com/auth/drive.file']; // This scope is sufficient for creating files and permissions
-const TOKEN_PATH = path.join(process.cwd(), 'token.json');
+const TOKEN_PATH = path.join(__dirname, 'token.json');
 
 async function loadSavedCredentialsIfExist() {
   try {
@@ -25,7 +25,7 @@ async function loadSavedCredentialsIfExist() {
 async function saveCredentials(client) {
   const content = fs.readFileSync(CREDENTIALS_PATH);
   const keys = JSON.parse(content);
-  const key = keys.installed || keys.web;
+  const key = keys.installed || keys.web || keys;
   const payload = JSON.stringify({
     type: 'authorized_user',
     client_id: key.client_id,
@@ -42,7 +42,7 @@ async function authorize() {
   }
 
   const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH));
-  const { client_secret, client_id } = credentials.installed || credentials.web;
+  const { client_secret, client_id } = credentials//.installed || credentials.web;
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, REDIRECT_URI);
 
@@ -140,10 +140,11 @@ async function uploadFile(authClient, filePath) {
  * The main function that drives the script.
  */
 async function main() {
-    const filePaths = process.argv.slice(2);
+    let filePaths = process.argv.slice(2);
     if (filePaths.length === 0) {
       console.log('Please provide one or more file paths to upload.');
       process.exit(1);
+      // filePaths = ["ss.png"]
     }
 
     try {
@@ -158,8 +159,17 @@ async function main() {
         }
         process.exit(0);
     } catch (error) {
-        console.error('\nAn error occurred:', error.message);
-        process.exit(1);
+        if(error.message === 'invalid_grant') {
+          console.log('\nStale or invalid credentials. Deleting token and attempting to re-authorize...');
+          if (fs.existsSync(TOKEN_PATH)) {
+            fs.unlinkSync(TOKEN_PATH);
+          }
+          return main();
+        } else {
+          console.error('\nAn error occurred:', error.message);
+          process.exit(1);
+        }
+
     }
 }
 
